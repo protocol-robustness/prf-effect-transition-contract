@@ -1,0 +1,39 @@
+{:artifact/schema "prf-effect-transition-contract.v1"
+ :contract/id :prf/effect-transition
+ :contract/version "prf-effect-transition-contract.v1"
+ :contract/status :exploratory
+ :source/bundle-version "portable-pro-rata-contract.v1"
+ :source/bundle-release-root "b863e04a61d0dded845dc3351626ebf57c4d5abea7e18ea19a89cacf4b1ad12a"
+ :source/prf-revision "9f03721b966429764b385ed2250697d087b25126"
+ :canonical-encoding/version "canonical-hash-scheme.v1"
+ :integer-domains {:effect-delta :signed-arbitrary-precision
+                   :state-quantity :unsigned-arbitrary-precision
+                   :intermediate :arbitrary-precision}
+ :schemas
+ {:canonical-effect
+  {:id "canonical-delta-effect.v1"
+   :fields [:schema-version :quantity/root :delta]}
+  :canonical-state
+  {:id "canonical-effect-state.v1"
+   :projection-fields [:schema-version :quantities]}
+  :canonical-transition
+  {:id "canonical-effect-transition.v1"
+   :root-field :canonical-effect-transition/root
+   :projection-fields [:schema-version :effect-semantics/root :state-before/root
+                       :effects/root :state-after/root]}}
+ :domain-tags
+ {:canonical-effect-semantics "CANONICAL_EFFECTS_V1"
+  :canonical-effect-state "CANONICAL_EFFECT_STATE_V1"
+  :canonical-effect-set "CANONICAL_EFFECT_SET_V1"
+  :canonical-effect-transition "CANONICAL_EFFECT_TRANSITION_V1"}
+ :effect-semantics
+ {:schema-version "canonical-effects-v1"
+  :integer-domain :signed-arbitrary-precision
+  :quantity-domain :non-negative-integer
+  :underflow :forbidden
+  :overflow :impossible
+  :ordering :canonical-target-order
+  :emission-order :irrelevant
+  :duplicate-targets :compose
+  :composition :atomic-net-delta
+  :failure :reject-entire-transition}}
