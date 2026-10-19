@@ -36,4 +36,16 @@
   :emission-order :irrelevant
   :duplicate-targets :compose
   :composition :atomic-net-delta
-  :failure :reject-entire-transition}}
+  :failure :reject-entire-transition}
+ :failure-taxonomy
+ [:portable-contract/malformed-input
+  :portable-contract/noncanonical-input
+  :portable-contract/unknown-version
+  :portable-contract/unknown-policy
+  :portable-contract/arithmetic-domain-violation
+  :portable-contract/ordering-mismatch
+  :portable-contract/projection-mismatch
+  :portable-contract/root-mismatch
+  :portable-contract/underflow
+  :portable-contract/effect-mismatch
+  :portable-contract/post-state-mismatch]}

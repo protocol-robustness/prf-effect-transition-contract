@@ -38,7 +38,7 @@ The original bundle was present in PRF revision
 ## Qualification limits
 
 This draft has no remote, published artifact, consumer pin, or release claim.
-The initial conformance suite checks the frozen transition vector and mutation
-rejection vectors using the shared canonical library. Rust conformance and
-consumer qualification remain outstanding. It does not qualify EVM, Solidity,
-SP1 proofs, or a production deployment.
+The Clojure and Rust conformance suites check the frozen transition vector and
+mutation rejection vectors using the shared canonical library. Independent
+ownership review and consumer qualification remain outstanding. This does not
+qualify EVM, Solidity, SP1 proofs, or a production deployment.

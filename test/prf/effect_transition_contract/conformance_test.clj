@@ -216,3 +216,8 @@
                       nil
                       (catch clojure.lang.ExceptionInfo error error))]
         (is (= reason (:reason (ex-data failure))) (str "mutation rejection: " id))))))
+
+(deftest frozen-rejection-reasons-are-declared-by-the-contract
+  (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
+        declared (set (:failure-taxonomy contract))]
+    (is (every? declared (map :expected/reason (:mutations negative))))))
