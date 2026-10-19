@@ -141,3 +141,32 @@
            (get-in negative [:mutations 5 :expected/reason])))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"underflow"
                           (apply-effects state (normalize-effects effects))))))
+
+(deftest negative-vector-input-mutations-change-transition-commitments
+  (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
+        expected (get-in transition-vector [:expected :roots])
+        input-mutations (take 4 (:mutations negative))]
+    (doseq [{:keys [mutation/id operation]} input-mutations]
+      (let [mutated
+            (case id
+              :effect-omission
+              (update transition-vector :raw-effects #(vec (concat (subvec % 0 2) (subvec % 3))))
+
+              :effect-addition
+              (update transition-vector :raw-effects conj (:append-effect operation))
+
+              :effect-value
+              (assoc-in transition-vector [:raw-effects 0 :delta]
+                        (second (:replace-delta-at-index operation)))
+
+              :post-state-substitution
+              (assoc-in transition-vector
+                        [:state-before (first (:replace-state-after-value operation))]
+                        (second (:replace-state-after-value operation))))
+            actual (:roots (calculate-transition mutated))]
+        (is (not= expected actual) (str "mutation changes commitments: " id)))))
+  (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
+        root-mutation (nth (:mutations negative) 4)]
+    (testing "root substitution requires the result-verifier API, absent from this draft"
+      (is (= :root-substitution (:mutation/id root-mutation)))
+      (is (= :portable-contract/root-mismatch (:expected/reason root-mutation))))))

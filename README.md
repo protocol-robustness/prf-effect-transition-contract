@@ -29,6 +29,8 @@ The original bundle was present in PRF revision
 ## Qualification limits
 
 This draft has no remote, published artifact, consumer pin, or release claim.
-The initial conformance suite checks the frozen transition vectors using the
-shared canonical library. It does not qualify EVM, Solidity, SP1 proofs, or a
-production deployment.
+The initial conformance suite checks the frozen transition vector and confirms
+that its input mutation vectors change the resulting commitments, using the
+shared canonical library. The draft does not expose a result-verification API,
+so the frozen root-substitution rejection vector remains unexercised. It does
+not qualify EVM, Solidity, SP1 proofs, or a production deployment.
