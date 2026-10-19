@@ -6,7 +6,7 @@
 
 (def release-domain "PRF_EFFECT_TRANSITION_CONTRACT_RELEASE_V1")
 (def release-files
-  ["README.md" "SPEC.md" "contract.edn" "deps.edn"
+  [".gitignore" "README.md" "SPEC.md" "contract.edn" "deps.edn"
    "src/prf/effect_transition_contract/build_release.clj"
    "test/prf/effect_transition_contract/test_runner.clj"
    "test/prf/effect_transition_contract/conformance_test.clj"
