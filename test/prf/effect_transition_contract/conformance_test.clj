@@ -8,9 +8,12 @@
   (:import [java.security MessageDigest]))
 
 (def release-domain "PRF_EFFECT_TRANSITION_CONTRACT_RELEASE_V1")
-(def contract (edn/read-string (slurp "contract.edn")))
+(def contract-resource "prf/effect_transition_contract/v1/contract.edn")
+(def vector-resource "prf/effect_transition_contract/v1/vectors/canonical-transition-001.edn")
+(def negative-vector-resource "prf/effect_transition_contract/v1/vectors/negative-transition-001.edn")
+(def contract (edn/read-string (slurp (io/resource contract-resource))))
 (def transition-vector
-  (edn/read-string (slurp "vectors/canonical-transition-001.edn")))
+  (edn/read-string (slurp (io/resource vector-resource))))
 
 (defn hex [bytes]
   (apply str (map #(format "%02x" (bit-and 0xff %)) bytes)))
@@ -113,23 +116,25 @@
 (deftest transition-vector-reconstructs-frozen-roots-and-bytes
   (let [expected (:expected transition-vector)
         actual (calculate-transition transition-vector)]
+    (is (= "prf-effect-transition-contract.v1" (:contract/version contract)))
+    (is (= "portable-pro-rata-contract.v1" (:contract/version transition-vector)))
     (is (= (:normalized-effects expected) (:normalized-effects actual)))
     (is (= (:state-after expected) (:state-after actual)))
     (is (= (:roots expected) (:roots actual)))
     (is (= (:canonical-values expected) (:canonical-values actual)))
     (doseq [[name value] (:canonical-values expected)]
-      (let [path (str "canonical-bytes/"
+      (let [path (str "prf/effect_transition_contract/v1/canonical-bytes/"
                       (case name
                         :state-before "state-before.hex"
                         :effects "effects.hex"
                         :state-after "state-after.hex"
                         :transition "transition.hex"))]
-        (is (= (str/trim (slurp path))
+        (is (= (str/trim (slurp (io/resource path)))
                (codec/canonical-bytes-hex value))
             (str "frozen bytes: " name))))))
 
 (deftest negative-vector-rejects-underflow
-  (let [negative (edn/read-string (slurp "vectors/negative-transition-001.edn"))
+  (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
         state (get-in negative [:mutations 5 :state-before])
         effects (get-in negative [:mutations 5 :effects])]
     (is (= :portable-contract/underflow

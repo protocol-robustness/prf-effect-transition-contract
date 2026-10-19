@@ -6,16 +6,17 @@
 
 (def release-domain "PRF_EFFECT_TRANSITION_CONTRACT_RELEASE_V1")
 (def release-files
-  [".gitignore" "README.md" "SPEC.md" "contract.edn" "deps.edn"
+  [".gitignore" "README.md" "SPEC.md" "deps.edn"
    "src/prf/effect_transition_contract/build_release.clj"
    "test/prf/effect_transition_contract/test_runner.clj"
    "test/prf/effect_transition_contract/conformance_test.clj"
-   "vectors/canonical-transition-001.edn"
-   "vectors/negative-transition-001.edn"
-   "canonical-bytes/state-before.hex"
-   "canonical-bytes/effects.hex"
-   "canonical-bytes/state-after.hex"
-   "canonical-bytes/transition.hex"])
+   "resources/prf/effect_transition_contract/v1/contract.edn"
+   "resources/prf/effect_transition_contract/v1/vectors/canonical-transition-001.edn"
+   "resources/prf/effect_transition_contract/v1/vectors/negative-transition-001.edn"
+   "resources/prf/effect_transition_contract/v1/canonical-bytes/state-before.hex"
+   "resources/prf/effect_transition_contract/v1/canonical-bytes/effects.hex"
+   "resources/prf/effect_transition_contract/v1/canonical-bytes/state-after.hex"
+   "resources/prf/effect_transition_contract/v1/canonical-bytes/transition.hex"])
 
 (defn sha256-file [path]
   (let [digest (MessageDigest/getInstance "SHA-256")]
@@ -29,7 +30,8 @@
     (apply str (map #(format "%02x" (bit-and 0xff %)) (.digest digest)))))
 
 (defn build-manifest []
-  (let [contract (edn/read-string (slurp "contract.edn"))
+  (let [contract (edn/read-string
+                  (slurp "resources/prf/effect_transition_contract/v1/contract.edn"))
         manifest {:artifact/schema "prf-effect-transition-release.v1"
                   :contract/id (:contract/id contract)
                   :contract/version (:contract/version contract)

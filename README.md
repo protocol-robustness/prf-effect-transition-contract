@@ -19,6 +19,9 @@ repository root are an extracted view of the transition sections and fixtures;
 they become authoritative only after independent review and consumer
 qualification.
 
+Candidate EDN and frozen fixtures are exposed as classpath resources under
+`prf/effect_transition_contract/v1/` through the `resources` path in `deps.edn`.
+
 The original bundle was present in PRF revision
 `9f03721b966429764b385ed2250697d087b25126`. Its recorded release root is
 `b863e04a61d0dded845dc3351626ebf57c4d5abea7e18ea19a89cacf4b1ad12a`.
