@@ -42,3 +42,8 @@ The Clojure and Rust conformance suites check the frozen transition vector and
 mutation rejection vectors using the shared canonical library. Independent
 ownership review and consumer qualification remain outstanding. This does not
 qualify EVM, Solidity, SP1 proofs, or a production deployment.
+
+The Clojure suite reads the EDN vectors directly. Rust currently mirrors the
+vector inputs in its test module and compares against the frozen roots and
+canonical-byte resources; automatic detection of drift between the EDN inputs
+and those Rust literals remains to be added.
