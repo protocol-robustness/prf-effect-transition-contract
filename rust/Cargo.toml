@@ -1,0 +1,10 @@
+[package]
+name = "prf-effect-transition-contract"
+version = "0.1.0-exploratory.1"
+edition = "2021"
+publish = false
+
+[dependencies]
+hex = "0.4"
+num-bigint = "0.4"
+prf-canonical-codec = { git = "https://github.com/protocol-robustness/prf-canonical.git", rev = "5e2b520feca812b049ba397b7b3681963c66a48c", package = "prf-canonical-codec" }

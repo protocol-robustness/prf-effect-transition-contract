@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [clojure.test :refer [deftest is testing]]
             [prf.canonical.codec :as codec]
-            [prf.canonical.hash :as canonical])
+            [prf.canonical.hash :as canonical]
+            [prf.effect-transition-contract.core :as transition-contract])
   (:import [java.security MessageDigest]))
 
 (def release-domain "PRF_EFFECT_TRANSITION_CONTRACT_RELEASE_V1")
@@ -115,13 +116,22 @@
 
 (deftest transition-vector-reconstructs-frozen-roots-and-bytes
   (let [expected (:expected transition-vector)
-        actual (calculate-transition transition-vector)]
+        actual (calculate-transition transition-vector)
+        implemented (transition-contract/transition (:state-before transition-vector)
+                                                     (:raw-effects transition-vector))]
     (is (= "prf-effect-transition-contract.v1" (:contract/version contract)))
     (is (= "portable-pro-rata-contract.v1" (:contract/version transition-vector)))
     (is (= (:normalized-effects expected) (:normalized-effects actual)))
     (is (= (:state-after expected) (:state-after actual)))
     (is (= (:roots expected) (:roots actual)))
     (is (= (:canonical-values expected) (:canonical-values actual)))
+    (is (= (:roots expected)
+           {:state-before/root (:state-before/root implemented)
+            :effects/root (:effects/root implemented)
+            :state-after/root (:state-after/root implemented)
+            :transition/root (:canonical-effect-transition/root implemented)}))
+    (is (= (:normalized-effects expected) (:effects implemented)))
+    (is (= (:state-after expected) (:state-after implemented)))
     (doseq [[name value] (:canonical-values expected)]
       (let [path (str "prf/effect_transition_contract/v1/canonical-bytes/"
                       (case name
@@ -140,7 +150,12 @@
     (is (= :portable-contract/underflow
            (get-in negative [:mutations 5 :expected/reason])))
     (is (thrown-with-msg? clojure.lang.ExceptionInfo #"underflow"
-                          (apply-effects state (normalize-effects effects))))))
+                          (apply-effects state (normalize-effects effects))))
+    (let [failure (try
+                    (transition-contract/transition state effects)
+                    nil
+                    (catch clojure.lang.ExceptionInfo error error))]
+      (is (= :portable-contract/underflow (:reason (ex-data failure)))))))
 
 (deftest negative-vector-input-mutations-change-transition-commitments
   (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
@@ -164,9 +179,40 @@
                         [:state-before (first (:replace-state-after-value operation))]
                         (second (:replace-state-after-value operation))))
             actual (:roots (calculate-transition mutated))]
-        (is (not= expected actual) (str "mutation changes commitments: " id)))))
+        (is (not= expected actual) (str "mutation changes commitments: " id))))))
+
+(defn apply-result-mutation [result {:keys [operation]}]
+  (cond
+    (:remove-raw-effect-index operation)
+    (update result :effects #(vec (concat (subvec % 0 1) (subvec % 2))))
+
+    (:append-effect operation)
+    (update result :effects conj (:append-effect operation))
+
+    (:replace-delta-at-index operation)
+    (assoc-in result [:effects (first (:replace-delta-at-index operation)) :delta]
+              (second (:replace-delta-at-index operation)))
+
+    (:replace-state-after-value operation)
+    (assoc-in result [:state-after (first (:replace-state-after-value operation))]
+              (second (:replace-state-after-value operation)))
+
+    (:replace-transition-root operation)
+    (assoc result :canonical-effect-transition/root (:replace-transition-root operation))))
+
+(deftest verifier-rejects-frozen-transition-mutations
   (let [negative (edn/read-string (slurp (io/resource negative-vector-resource)))
-        root-mutation (nth (:mutations negative) 4)]
-    (testing "root substitution requires the result-verifier API, absent from this draft"
-      (is (= :root-substitution (:mutation/id root-mutation)))
-      (is (= :portable-contract/root-mismatch (:expected/reason root-mutation))))))
+        valid (transition-contract/transition (:state-before transition-vector)
+                                              (:raw-effects transition-vector))]
+    (is (true? (transition-contract/verify-transition (:state-before transition-vector)
+                                                       (:raw-effects transition-vector)
+                                                       valid)))
+    (doseq [{:keys [mutation/id expected/reason] :as mutation} (:mutations negative)
+            :when (not= :underflow id)]
+      (let [invalid (apply-result-mutation valid mutation)
+            failure (try
+                      (transition-contract/verify-transition
+                       (:state-before transition-vector) (:raw-effects transition-vector) invalid)
+                      nil
+                      (catch clojure.lang.ExceptionInfo error error))]
+        (is (= reason (:reason (ex-data failure))) (str "mutation rejection: " id))))))

@@ -6,8 +6,9 @@
 
 (def release-domain "PRF_EFFECT_TRANSITION_CONTRACT_RELEASE_V1")
 (def release-files
-  [".gitignore" "README.md" "SPEC.md" "deps.edn"
+  [".gitignore" "README.md" "SPEC.md" "deps.edn" "rust/Cargo.toml" "rust/Cargo.lock" "rust/src/lib.rs"
    "src/prf/effect_transition_contract/build_release.clj"
+   "src/prf/effect_transition_contract/core.clj"
    "test/prf/effect_transition_contract/test_runner.clj"
    "test/prf/effect_transition_contract/conformance_test.clj"
    "resources/prf/effect_transition_contract/v1/contract.edn"
@@ -35,7 +36,12 @@
         manifest {:artifact/schema "prf-effect-transition-release.v1"
                   :contract/id (:contract/id contract)
                   :contract/version (:contract/version contract)
+                  :package/version "0.1.0-exploratory.1"
                   :release/status :exploratory
+                  :dependencies {:prf-canonical
+                                 {:git/revision "5e2b520feca812b049ba397b7b3681963c66a48c"
+                                  :clojure/deps-root "clj"
+                                  :rust/cargo-package "prf-canonical-codec"}}
                   :release/source {:repository "prf-effect-transition-contract"
                                    :source-repository "protocol-robustness-framework"
                                    :source-revision (:source/prf-revision contract)
