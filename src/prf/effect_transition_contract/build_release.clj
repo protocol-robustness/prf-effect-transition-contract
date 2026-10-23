@@ -36,7 +36,7 @@
         manifest {:artifact/schema "prf-effect-transition-release.v1"
                   :contract/id (:contract/id contract)
                   :contract/version (:contract/version contract)
-                  :package/version "0.1.0-exploratory.1"
+                  :package/version "0.1.0-exploratory.2"
                   :release/status :exploratory
                   :dependencies {:prf-canonical
                                  {:git/revision "5e2b520feca812b049ba397b7b3681963c66a48c"
