@@ -235,6 +235,12 @@ mod tests {
     const ROOT_A: &str = "sha256:aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa";
     const ROOT_B: &str = "sha256:bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
 
+    fn report_rejection(vector_id: &str, reason: &str) {
+        if std::env::var_os("PRF_VECTOR_DRIFT").is_some() {
+            println!("PRF_VECTOR_DRIFT_V1|transition-rejection|{vector_id}|{reason}");
+        }
+    }
+
     fn big(value: i64) -> BigInt {
         BigInt::from(value)
     }
@@ -281,6 +287,15 @@ mod tests {
             result.transition_root,
             "852a8a2a93dbf8339d35b04a00217bc0d2cc0f5ead1dae781f5197988aec6bf6"
         );
+        if std::env::var_os("PRF_VECTOR_DRIFT").is_some() {
+            println!(
+                "PRF_VECTOR_DRIFT_V1|transition|canonical-transition-001|{}|{}|{}|{}",
+                result.state_before_root,
+                result.effects_root,
+                result.state_after_root,
+                result.transition_root
+            );
+        }
         assert_eq!(hex::encode(state_value(&state_before).encode()), include_str!("../../resources/prf/effect_transition_contract/v1/canonical-bytes/state-before.hex").trim());
         let effects_projection = CanonValue::map(vec![
             (keyword("schema-version"), string(EFFECT_SCHEMA)),
@@ -331,6 +346,7 @@ mod tests {
             verify_transition(&state_before, &raw_effects, &omitted),
             Err(TransitionError::ProjectionMismatch)
         );
+        report_rejection("effect-omission", "projection-mismatch");
 
         let mut added = valid.clone();
         added.effects.push(effect(
@@ -341,6 +357,7 @@ mod tests {
             verify_transition(&state_before, &raw_effects, &added),
             Err(TransitionError::ProjectionMismatch)
         );
+        report_rejection("effect-addition", "projection-mismatch");
 
         let mut changed = valid.clone();
         changed.effects[0].delta = big(6);
@@ -348,6 +365,7 @@ mod tests {
             verify_transition(&state_before, &raw_effects, &changed),
             Err(TransitionError::ProjectionMismatch)
         );
+        report_rejection("effect-value", "projection-mismatch");
 
         let mut substituted = valid.clone();
         substituted.state_after.insert(ROOT_A.to_string(), big(999));
@@ -355,6 +373,7 @@ mod tests {
             verify_transition(&state_before, &raw_effects, &substituted),
             Err(TransitionError::PostStateMismatch)
         );
+        report_rejection("post-state-substitution", "post-state-mismatch");
 
         let mut wrong_root = valid;
         wrong_root.transition_root =
@@ -363,6 +382,7 @@ mod tests {
             verify_transition(&state_before, &raw_effects, &wrong_root),
             Err(TransitionError::RootMismatch)
         );
+        report_rejection("root-substitution", "root-mismatch");
     }
 
     #[test]
@@ -373,5 +393,6 @@ mod tests {
             transition(&state, &effects),
             Err(TransitionError::Underflow)
         );
+        report_rejection("underflow", "underflow");
     }
 }
